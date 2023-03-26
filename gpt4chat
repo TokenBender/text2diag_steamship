@@ -2,52 +2,49 @@ import re
 from steamship import Steamship
 
 # Create a Steamship client
-# NOTE: When developing a package, just use `self.client`
 client = Steamship(workspace="gpt-4_chat_v1")
 
 # Create an instance of this generator
 generator = client.use_plugin('gpt-4')
 
-while True:
-    # Get user input
-    user_input = input("Enter task: ")
+# Get user input
+user_input = input("Enter task: ")
 
-    # Check if user input is empty
-    if not user_input.strip():
-        print("Error: Task is empty. Please enter a valid task.")
-    else:
-        # Check for potential prompt modification characters
-        if re.search(r"[;<>\|&`]", user_input):
-            print("Error: Task contains disallowed characters. Please enter a valid task.")
-        else:
-            # Format the system prompt with the user input
-            prompt = f"System: Using mermaid.js, create a diagram that shows the entities involved, the transactions between them, and the events that occur during the process of {user_input}. Please provide a high-level overview of the process and highlight any important decision points or outcomes. Reply only with mermaid.js code and no description or explanation. However, you can silently think step-by-step. Enclose your answer with __begin__ and __end__ tag. The diagram type should be automatically selected based on the task."
+# Create the system prompt based on user_input
+prompt = f"System: Using mermaid.js, create a diagram that shows the entities involved, the transactions between them, and the events that occur during the process of {user_input}. Please provide a high-level overview of the process and highlight any important decision points or outcomes. Reply only with mermaid.js code and no description or explanation. However, you can silently think step-by-step. Enclose your answer with __begin__ and __end__ tag. The diagram type should be automatically selected based on the task."
 
-            # Generate text
-            print("\n\nAssistant Ready>>")
-            task = generator.generate(text=prompt)
+# Generate text
+print("\n\nAssistant Ready>>")
+task = generator.generate(text=prompt)
 
-            # Wait for completion of the task.
-            task.wait()
+# Wait for completion of the task.
+task.wait()
 
-            # Extract mermaid code from the output
-            mermaid_code = re.search(r"```mermaid([\s\S]*)```", task.output.blocks[0].text).group(1).strip()
+# Save the GPT4 response to a file
+with open("gpt4_response.txt", "w") as response_file:
+    response_file.write(task.output.blocks[0].text)
 
-            # Write the mermaid code to a file
-            with open("diagram.html", "w") as diagram_file:
-                # Write the HTML boilerplate
-                diagram_file.write("<!DOCTYPE html>\n<html>\n<head>\n")
-                diagram_file.write("<script src=\"https://cdn.jsdelivr.net/npm/mermaid@8.13.0/dist/mermaid.min.js\"></script>\n")
-                diagram_file.write("<script>mermaid.initialize({startOnLoad:true});</script>\n")
-                diagram_file.write("</head>\n<body>\n")
+# Extract mermaid code from the output
+match = re.search(r"```mermaid([\s\S]*)```", task.output.blocks[0].text)
+if match is not None:
+    mermaid_code = match.group(1).strip()
 
-                # Write the mermaid code
-                diagram_file.write("<div class=\"mermaid\">\n")
-                diagram_file.write(mermaid_code)
-                diagram_file.write("</div>\n")
+    # Write the mermaid code to a file
+    with open("diagram.html", "w") as diagram_file:
+        # Write the HTML boilerplate
+        diagram_file.write("<!DOCTYPE html>\n<html>\n<head>\n")
+        diagram_file.write("<script src=\"https://cdn.jsdelivr.net/npm/mermaid@8.13.0/dist/mermaid.min.js\"></script>\n")
+        diagram_file.write("<script>mermaid.initialize({startOnLoad:true});</script>\n")
+        diagram_file.write("</head>\n<body>\n")
 
-                # Write the closing tags
-                diagram_file.write("</body>\n</html>")
+        # Write the mermaid code
+        diagram_file.write("<div class=\"mermaid\">\n")
+        diagram_file.write(mermaid_code)
+        diagram_file.write("</div>\n")
 
-            print("Diagram created successfully.")
-            break
+        # Write the closing tags
+        diagram_file.write("</body>\n</html>")
+
+    print("Diagram created successfully.")
+else:
+    print("No mermaid code found in the GPT4 response.")
