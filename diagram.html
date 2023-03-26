@@ -6,18 +6,33 @@
 </head>
 <body>
 <div class="mermaid">
-graph TD
-A[Decide to buy groceries online] --> B[Create or login to your shopping account]
-B --> C[Choose a preferred store]
-C --> D[Search or browse for items]
-D --> E[Add items to cart]
-E --> F[Proceed to checkout]
-F --> G[Select payment method]
-G --> H[Enter shipping address]
-H --> I[Review order]
-I --> J[Confirm order]
-J --> K[Order Processing]
-K --> L[Delivery Schedule]
-L --> M[Receive Groceries]</div>
+sequenceDiagram
+    participant C as Customer
+    participant W as Online Grocery Website
+    participant S as Shopping Cart System
+    participant P as Payment System
+    participant N as Notification System
+    participant SH as Shipping System
+    participant G as Grocery Store
+
+    C->>W: Browse groceries
+    W->>C: Display available groceries
+    C->>S: Add groceries to cart
+    S->>C: Update cart total
+    C->>S: Proceed to checkout
+    S->>C: Display checkout summary
+    C->>P: Submit payment
+    P->>C: Confirm/deny payment
+    alt Payment successful
+        P->>S: Notify success
+        C->>N: Enter shipping details
+        N->>SH: Notify shipping system
+        SH->>G: Request groceries
+        G->>SH: Provide groceries
+        SH->>C: Deliver groceries
+    else Payment unsuccessful
+        P->>C: Display error message
+        C->>P: Retry or cancel
+    end</div>
 </body>
 </html>
