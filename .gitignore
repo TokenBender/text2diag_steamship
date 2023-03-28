@@ -131,3 +131,4 @@ dmypy.json
 # Custom ignores
 diagram.html
 gpt4_response.txt
+steamship.json
